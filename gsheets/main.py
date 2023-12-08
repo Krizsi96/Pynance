@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import os
+import json
 
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
@@ -8,8 +9,6 @@ from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
 SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
-
-SPREADSHEET_ID = "1VZelKmuZ-Hr6-sZKTx7KErAka_AB4IWyTJ4RNo23F6Q"
 
 
 def main():
@@ -25,6 +24,14 @@ def main():
         with open("token.json", "w") as token:
             token.write(credentials.to_json())
 
+    spreadsheet_id = None
+    if os.path.exists("spreadsheet.json"):
+        with open("spreadsheet.json", "r") as spreadsheet:
+            spreadsheet_id = json.load(spreadsheet)["spreadsheet_id"]
+    else:
+        print("Please create a spreadsheet.json file")
+        exit(1)
+
     try:
         service = build("sheets", "v4", credentials=credentials)
         sheets = service.spreadsheets()
@@ -32,13 +39,13 @@ def main():
         for row in range(2, 7):
             number1 = int(
                 sheets.values()
-                .get(spreadsheetId=SPREADSHEET_ID, range=f"Sheet1!A{row}")
+                .get(spreadsheetId=spreadsheet_id, range=f"Sheet1!A{row}")
                 .execute()
                 .get("values")[0][0]
             )
             number2 = int(
                 sheets.values()
-                .get(spreadsheetId=SPREADSHEET_ID, range=f"Sheet1!B{row}")
+                .get(spreadsheetId=spreadsheet_id, range=f"Sheet1!B{row}")
                 .execute()
                 .get("values")[0][0]
             )
@@ -46,14 +53,14 @@ def main():
             print(f"Processing {number1} + {number2} = {calculation_result}")
 
             sheets.values().update(
-                spreadsheetId=SPREADSHEET_ID,
+                spreadsheetId=spreadsheet_id,
                 range=f"Sheet1!C{row}",
                 valueInputOption="USER_ENTERED",
                 body={"values": [[f"{calculation_result}"]]},
             ).execute()
 
             sheets.values().update(
-                spreadsheetId=SPREADSHEET_ID,
+                spreadsheetId=spreadsheet_id,
                 range=f"Sheet1!D{row}",
                 valueInputOption="USER_ENTERED",
                 body={"values": [["DONE"]]},

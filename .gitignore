@@ -9,6 +9,7 @@ __pycache__/
 # Secrets
 credentials.json
 token.json
+spreadsheet.json
 
 # Distribution / packaging
 .Python

@@ -26,9 +26,13 @@ class Authentication:
         return is_check_ok
 
 
-def folder_contains_credentials_file(credentials_folder):
-    return Path(credentials_folder).joinpath(CREDENTIALS_FILE_NAME).is_file()
+def folder_contains_credentials_file(path_to_credentials):
+    return Path(path_to_credentials).is_file()
 
 
-def folder_contains_token_file(credentials_folder):
-    return Path(credentials_folder).joinpath(TOKEN_FILE_NAME).is_file()
+def folder_contains_token_file(path_to_token):
+    return Path(path_to_token).is_file()
+
+
+def token_is_valid(path_to_token):
+    return True

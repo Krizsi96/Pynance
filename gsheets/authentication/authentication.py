@@ -1,6 +1,7 @@
 from pathlib import Path
 from google.oauth2.credentials import Credentials
 from google.auth.transport.requests import Request
+from google_auth_oauthlib.flow import InstalledAppFlow
 
 CREDENTIALS_FILE_NAME = "credentials.json"
 TOKEN_FILE_NAME = "token.json"
@@ -21,26 +22,68 @@ class Authentication:
         self.path_to_token = Path(credentials_folder).joinpath(TOKEN_FILE_NAME)
         self.credentials = None
 
-    def check(self):
-        is_check_ok = False
+    def check_credentials(self):
+        """Checks the credentials and refreshes them if needed
+
+        Returns:
+        True - credentials are valid
+        False - credentials are invalid
+        """
+        is_credentials_ok = False
         message = "no token found"
-        if folder_contains_token_file(self.path_to_token):
-            self.credentials = load_from_token(self.path_to_token)
-            if self.credentials and self.credentials.valid:
+        if self.load_credentials():
+            if self.valid_credentials():
                 message = "valid token"
-                is_check_ok = True
-            elif (
-                self.credentials
-                and self.credentials.expired
-                and self.credentials.refresh_token
-            ):
+                is_credentials_ok = True
+            elif self.credentials_need_refresh():
                 self.credentials.refresh(Request())
                 message = "refreshed token"
-                is_check_ok = True
+                is_credentials_ok = True
             else:
                 message = "expired token"
         print(message)
-        return is_check_ok
+        return is_credentials_ok
+
+    def load_credentials(self):
+        """If the token file exists, loads the credentials from it
+
+        Returns:
+        True - credentials loaded
+        False - can't load credentials
+        """
+        if folder_contains_token_file(self.path_to_token):
+            self.credentials = load_from_token(self.path_to_token)
+            return True
+        else:
+            return False
+
+    def login(self):
+        """Logs in to Google Sheets API
+
+        Returns:
+        True - login successful
+        False - login failed
+        """
+        flow = InstalledAppFlow.from_client_secrets_file(
+            self.path_to_credentials, SCOPES
+        )
+        self.credentials = flow.run_local_server(port=0)
+        if self.credentials:
+            with open(self.path_to_token, "w") as token:
+                token.write(self.credentials.to_json())
+            return True
+        else:
+            return False
+
+    def valid_credentials(self):
+        return self.credentials and self.credentials.valid
+
+    def credentials_need_refresh(self):
+        return (
+            self.credentials
+            and self.credentials.expired
+            and self.credentials.refresh_token
+        )
 
 
 def folder_contains_credentials_file(path_to_credentials):

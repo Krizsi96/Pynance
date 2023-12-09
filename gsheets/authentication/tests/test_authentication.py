@@ -38,14 +38,18 @@ def test_init_with_existing_credentials(mocked_folder_contains_credentials_file)
     assert str(test_auth.path_to_token) == "/path/to/existing/credentials/token.json"
 
 
-def test_check_with_valid_token():
-    # Given
+@pytest.fixture
+def test_auth():
     with patch(
         "authentication.authentication.folder_contains_credentials_file"
     ) as mocked_folder_contains_credentials_file:
         mocked_folder_contains_credentials_file.return_value = True
-        test_auth = Authentication(credentials_folder="/path/to/existing/credentials")
 
+        return Authentication(credentials_folder="/path/to/existing/credentials")
+
+
+def test_check_with_valid_token(test_auth):
+    # Given
     with patch(
         "authentication.authentication.folder_contains_token_file"
     ) as mocked_folder_contains_token_file:
@@ -63,14 +67,8 @@ def test_check_with_valid_token():
     assert return_value is True
 
 
-def test_check_with_not_existing_token():
+def test_check_with_not_existing_token(test_auth):
     # Given
-    with patch(
-        "authentication.authentication.folder_contains_credentials_file"
-    ) as mocked_folder_contains_credentials_file:
-        mocked_folder_contains_credentials_file.return_value = True
-        test_auth = Authentication(credentials_folder="/path/to/existing/credentials")
-
     with patch(
         "authentication.authentication.folder_contains_token_file"
     ) as mocked_folder_contains_token_file:

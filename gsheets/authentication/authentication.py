@@ -91,9 +91,10 @@ class Authentication:
             return False
 
     def save_credentials(self):
-        """Saves credentials to token.json file for future use"""
-        with open(self.path_to_token, "w") as token:
-            token.write(self.credentials.to_json())
+        """Saves credentials if not empty to token.json file for future use"""
+        if self.credentials:
+            with open(self.path_to_token, "w") as token:
+                token.write(self.credentials.to_json())
 
 
 def folder_contains_credentials_file(path_to_credentials):

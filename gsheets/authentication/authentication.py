@@ -2,25 +2,24 @@ from pathlib import Path
 from google.oauth2.credentials import Credentials
 from google.auth.transport.requests import Request
 from google_auth_oauthlib.flow import InstalledAppFlow
+from concurrent.futures import ThreadPoolExecutor, TimeoutError
 
 CREDENTIALS_FILE_NAME = "credentials.json"
 TOKEN_FILE_NAME = "token.json"
 
 
 class Authentication:
-    """
-    Authentication class for Google Sheets API
-    """
+    """Authentication class for Google Sheets API"""
 
     def __init__(self, credentials_folder):
-        if not folder_contains_credentials_file(credentials_folder):
-            raise FileNotFoundError
         self.path_to_credentials = Path(credentials_folder).joinpath(
             CREDENTIALS_FILE_NAME
         )
         self.path_to_token = Path(credentials_folder).joinpath(TOKEN_FILE_NAME)
         self.credentials = None
         self.SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
+        if not folder_contains_credentials_file(self.path_to_credentials):
+            raise FileNotFoundError
 
     def check_credentials(self):
         """Checks the credentials and refreshes them if needed
@@ -67,23 +66,35 @@ class Authentication:
         flow = InstalledAppFlow.from_client_secrets_file(
             self.path_to_credentials, self.SCOPES
         )
-        self.credentials = flow.run_local_server(port=0)
+        self.credentials = run_with_timeout(flow.run_local_server, timeout=60)
         if self.credentials:
-            with open(self.path_to_token, "w") as token:
-                token.write(self.credentials.to_json())
+            self.save_credentials()
             return True
         else:
             return False
 
     def valid_credentials(self):
-        return self.credentials and self.credentials.valid
+        """Checks if credentials are valid"""
+        if self.credentials and self.credentials.valid:
+            return True
+        else:
+            return False
 
     def credentials_need_refresh(self):
-        return (
+        """Checks if the credentials are expired and can be refreshed"""
+        if (
             self.credentials
             and self.credentials.expired
             and self.credentials.refresh_token
-        )
+        ):
+            return True
+        else:
+            return False
+
+    def save_credentials(self):
+        """Saves credentials to token.json file for future use"""
+        with open(self.path_to_token, "w") as token:
+            token.write(self.credentials.to_json())
 
 
 def folder_contains_credentials_file(path_to_credentials):
@@ -96,3 +107,14 @@ def folder_contains_token_file(path_to_token):
 
 def load_from_token(path_to_token, scopes):
     return Credentials.from_authorized_user_file(path_to_token, scopes)
+
+
+def run_with_timeout(func, timeout):
+    executor = ThreadPoolExecutor(max_workers=1)
+    future = executor.submit(func)
+    try:
+        return future.result(timeout=timeout)
+    except TimeoutError:
+        return None
+    finally:
+        executor.shutdown(wait=False)

@@ -19,7 +19,7 @@ def test_init_with_not_existing_credentials(mocked_folder_contains_credentials_f
         Authentication(credentials_folder="/path/to/not/existing/credentials")
 
     mocked_folder_contains_credentials_file.assert_called_once_with(
-        "/path/to/not/existing/credentials"
+        Path("/path/to/not/existing/credentials/credentials.json")
     )
 
 
@@ -33,7 +33,7 @@ def test_init_with_existing_credentials(mocked_folder_contains_credentials_file)
 
     # Then
     mocked_folder_contains_credentials_file.assert_called_once_with(
-        "/path/to/existing/credentials"
+        Path("/path/to/existing/credentials/credentials.json")
     )
     assert (
         str(test_auth.path_to_credentials)
@@ -161,7 +161,7 @@ def test_successful_login(auth_fixture):
     # Then
     assert return_value is True
     mock_file.assert_called_once_with(test_auth.path_to_token, "w")
-    mocked_flow.run_local_server.assert_called_once_with(port=0)
+    mocked_flow.run_local_server.assert_called_once()
     MockedInstalledAppFlow.from_client_secrets_file.assert_called_once_with(
         test_auth.path_to_credentials, test_auth.SCOPES
     )
@@ -186,7 +186,7 @@ def test_unsuccesful_login(auth_fixture):
     # Then
     assert return_value is False
     mock_file.assert_not_called()
-    mocked_flow.run_local_server.assert_called_once_with(port=0)
+    mocked_flow.run_local_server.assert_called_once()
     MockedInstalledAppFlow.from_client_secrets_file.assert_called_once_with(
         test_auth.path_to_credentials, test_auth.SCOPES
     )

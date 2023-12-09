@@ -2,7 +2,7 @@ from pathlib import Path
 from google.oauth2.credentials import Credentials
 from google.auth.transport.requests import Request
 from google_auth_oauthlib.flow import InstalledAppFlow
-from concurrent.futures import ThreadPoolExecutor, TimeoutError
+from concurrent.futures import ThreadPoolExecutor, TimeoutError as FutureTimeoutError
 
 CREDENTIALS_FILE_NAME = "credentials.json"
 TOKEN_FILE_NAME = "token.json"
@@ -114,7 +114,7 @@ def run_with_timeout(func, timeout, *args, **kwargs):
     future = executor.submit(func, *args, **kwargs)
     try:
         return future.result(timeout=timeout)
-    except TimeoutError:
+    except FutureTimeoutError:
         print(f"TimeoutError for func: {func.__name__}, timeout: {timeout}")
         return None
     finally:

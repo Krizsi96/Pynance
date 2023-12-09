@@ -4,7 +4,7 @@ from authentication.authentication import Authentication
 
 
 @patch("authentication.authentication.os.path.exists")
-def test_first_log_in_without_credentials(mocked_path_exists):
+def test_start_without_credentials(mocked_path_exists):
     # Given
     mocked_path_exists.return_value = False
 
@@ -15,7 +15,7 @@ def test_first_log_in_without_credentials(mocked_path_exists):
 
 
 @patch("authentication.authentication.os.path.exists")
-def test_first_log_in_with_credentials(mocked_path_exists):
+def test_start_with_credentials(mocked_path_exists):
     # Given
     mocked_path_exists.return_value = True
 

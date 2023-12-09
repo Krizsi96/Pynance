@@ -66,7 +66,7 @@ class Authentication:
         flow = InstalledAppFlow.from_client_secrets_file(
             self.path_to_credentials, self.SCOPES
         )
-        self.credentials = run_with_timeout(flow.run_local_server, timeout=60)
+        self.credentials = run_with_timeout(flow.run_local_server, timeout=60, port=0)
         if self.credentials:
             return True
         else:
@@ -109,12 +109,13 @@ def load_from_token(path_to_token, scopes):
     return Credentials.from_authorized_user_file(path_to_token, scopes)
 
 
-def run_with_timeout(func, timeout):
+def run_with_timeout(func, timeout, *args, **kwargs):
     executor = ThreadPoolExecutor(max_workers=1)
-    future = executor.submit(func)
+    future = executor.submit(func, *args, **kwargs)
     try:
         return future.result(timeout=timeout)
     except TimeoutError:
+        print(f"TimeoutError for func: {func.__name__}, timeout: {timeout}")
         return None
     finally:
         executor.shutdown(wait=False)

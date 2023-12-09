@@ -3,14 +3,22 @@ from unittest.mock import patch, Mock
 from authentication.authentication import Authentication
 
 
-def test_first_log_in_without_credentials():
+@patch("authentication.authentication.os.path.exists")
+def test_first_log_in_without_credentials(mocked_path_exists):
+    # Given
+    mocked_path_exists.return_value = False
+
     # Then
     with pytest.raises(FileNotFoundError):
         # When
         auth = Authentication(path_to_credentials="not_existing_credentials.json")
 
 
-def test_first_log_in_with_credentials():
+@patch("authentication.authentication.os.path.exists")
+def test_first_log_in_with_credentials(mocked_path_exists):
+    # Given
+    mocked_path_exists.return_value = True
+
     # When
     auth = Authentication(path_to_credentials="some_credentials.json")
 

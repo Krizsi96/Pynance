@@ -1,29 +1,56 @@
 import pytest
 from unittest.mock import patch, Mock
-from authentication.authentication import Authentication
+from authentication.authentication import (
+    Authentication,
+    folder_contains_credentials_file,
+)
 
 
-@patch("authentication.authentication.os.path.exists")
-def test_start_without_credentials(mocked_path_exists):
+@patch("authentication.authentication.folder_contains_credentials_file")
+def test_init_with_not_existing_credentials(mocked_folder_contains_credentials_file):
     # Given
-    mocked_path_exists.return_value = False
+    mocked_folder_contains_credentials_file.return_value = False
 
     # Then
     with pytest.raises(FileNotFoundError):
         # When
-        auth = Authentication(path_to_credentials="not_existing_credentials.json")
+        Authentication(credentials_folder="/path/to/not/existing/credentials")
 
-    mocked_path_exists.assert_called_once_with("not_existing_credentials.json")
+    mocked_folder_contains_credentials_file.assert_called_once_with(
+        "/path/to/not/existing/credentials"
+    )
 
 
-@patch("authentication.authentication.os.path.exists")
-def test_start_with_credentials(mocked_path_exists):
+@patch("authentication.authentication.folder_contains_credentials_file")
+def test_init_with_existing_credentials(mocked_folder_contains_credentials_file):
     # Given
-    mocked_path_exists.return_value = True
+    mocked_folder_contains_credentials_file.return_value = True
 
     # When
-    auth = Authentication(path_to_credentials="some_credentials.json")
+    test_auth = Authentication(credentials_folder="/path/to/existing/credentials")
 
     # Then
-    mocked_path_exists.assert_called_once_with("some_credentials.json")
-    assert auth.path_to_credentials == "some_credentials.json"
+    mocked_folder_contains_credentials_file.assert_called_once_with(
+        "/path/to/existing/credentials"
+    )
+    assert (
+        str(test_auth.path_to_credentials)
+        == "/path/to/existing/credentials/credentials.json"
+    )
+    assert str(test_auth.path_to_token) == "/path/to/existing/credentials/token.json"
+
+
+def test_check_with_valid_token():
+    # Given
+    with patch(
+        "authentication.authentication.folder_contains_credentials_file"
+    ) as mocked_folder_contains_credentials_file:
+        mocked_folder_contains_credentials_file.return_value = True
+        test_auth = Authentication(credentials_folder="/path/to/existing/credentials")
+
+    with patch("builtins.print") as mocked_print:
+        # when
+        test_auth.check()
+
+    # Then
+    mocked_print.assert_called_once_with("Authentication OK")

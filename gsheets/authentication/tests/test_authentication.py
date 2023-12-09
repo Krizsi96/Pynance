@@ -1,7 +1,12 @@
 import pytest
 from unittest.mock import patch, Mock
 from pathlib import Path
-from authentication.authentication import Authentication
+from authentication.authentication import (
+    Authentication,
+    folder_contains_credentials_file,
+    folder_contains_token_file,
+    token_is_valid,
+)
 
 
 @patch("authentication.authentication.folder_contains_credentials_file")
@@ -36,6 +41,24 @@ def test_init_with_existing_credentials(mocked_folder_contains_credentials_file)
         == "/path/to/existing/credentials/credentials.json"
     )
     assert str(test_auth.path_to_token) == "/path/to/existing/credentials/token.json"
+
+
+@patch("authentication.authentication.Path")
+def test_folder_contains_credentials_file(mocked_path):
+    # When
+    folder_contains_credentials_file("/path/to/credentials.json")
+
+    # Then
+    mocked_path.assert_called_once_with("/path/to/credentials.json")
+
+
+@patch("authentication.authentication.Path")
+def test_folder_contains_token_file(mocked_path):
+    # When
+    folder_contains_token_file("/path/to/token.json")
+
+    # Then
+    mocked_path.assert_called_once_with("/path/to/token.json")
 
 
 @pytest.fixture

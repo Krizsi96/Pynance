@@ -23,3 +23,7 @@ class Authentication:
 
 def folder_contains_credentials_file(credentials_folder):
     return Path(credentials_folder).joinpath(CREDENTIALS_FILE_NAME).is_file()
+
+
+def folder_contains_token_file(credentials_folder):
+    return Path(credentials_folder).joinpath(TOKEN_FILE_NAME).is_file()

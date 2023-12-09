@@ -1,7 +1,10 @@
 from pathlib import Path
+from google.oauth2.credentials import Credentials
+from google.auth.transport.requests import Request
 
 CREDENTIALS_FILE_NAME = "credentials.json"
 TOKEN_FILE_NAME = "token.json"
+SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
 
 
 class Authentication:
@@ -16,12 +19,23 @@ class Authentication:
             CREDENTIALS_FILE_NAME
         )
         self.path_to_token = Path(credentials_folder).joinpath(TOKEN_FILE_NAME)
+        self.credentials = None
 
     def check(self):
         is_check_ok = False
         if folder_contains_token_file(self.path_to_token):
-            print("Authentication OK")
-            is_check_ok = True
+            self.credentials = load_from_token(self.path_to_token)
+            if self.credentials and self.credentials.valid:
+                print("Authentication OK")
+                is_check_ok = True
+            elif (
+                self.credentials
+                and self.credentials.expired
+                and self.credentials.refresh_token
+            ):
+                self.credentials.refresh(Request())
+                print("Authentication Refreshed")
+                is_check_ok = True
 
         return is_check_ok
 
@@ -34,5 +48,5 @@ def folder_contains_token_file(path_to_token):
     return Path(path_to_token).is_file()
 
 
-def token_is_valid(path_to_token):
-    return True
+def load_from_token(path_to_token):
+    return Credentials.from_authorized_user_file(path_to_token, SCOPES)

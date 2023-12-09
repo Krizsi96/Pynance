@@ -176,15 +176,51 @@ def test_login_timeout(auth_fixture):
         mocked_flow.run_local_server.return_value = None
         MockedInstalledAppFlow.from_client_secrets_file.return_value = mocked_flow
 
-        mock_file = mock_open()
-        with patch("builtins.open", mock_file):
+        with patch(
+            "authentication.authentication.run_with_timeout"
+        ) as mocked_run_with_timeout:
+            mocked_run_with_timeout.return_value = None
+
             # When
             return_value = test_auth.login()
 
     # Then
     assert return_value is False
-    mock_file.assert_not_called()
-    mocked_flow.run_local_server.assert_called_once()
+    mocked_run_with_timeout.assert_called_once_with(
+        mocked_flow.run_local_server, timeout=60
+    )
     MockedInstalledAppFlow.from_client_secrets_file.assert_called_once_with(
         test_auth.path_to_credentials, test_auth.SCOPES
     )
+
+
+def test_saving_of_credentials(auth_fixture):
+    # Given
+    test_auth = auth_fixture[0]
+    with patch("authentication.authentication.Credentials") as MockCredentials:
+        mock_credentials = MagicMock()
+        mock_credentials.expired = False
+        mock_credentials.refresh_token = False
+        mock_credentials.valid = True
+
+        test_auth.credentials = mock_credentials
+
+    with patch("authentication.authentication.open", mock_open()) as mocked_open:
+        # When
+        test_auth.save_credentials()
+
+    # Then
+    mocked_open.assert_called_once_with(test_auth.path_to_token, "w")
+    mocked_open().write.assert_called_once_with(test_auth.credentials.to_json())
+
+
+def test_saving_of_empty_credentials(auth_fixture):
+    # Given
+    test_auth = auth_fixture[0]
+    with patch("authentication.authentication.open", mock_open()) as mocked_open:
+        # When
+        test_auth.save_credentials()
+
+    # Then
+    mocked_open.assert_not_called()
+    mocked_open().write.assert_not_called()

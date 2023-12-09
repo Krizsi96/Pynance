@@ -68,7 +68,6 @@ class Authentication:
         )
         self.credentials = run_with_timeout(flow.run_local_server, timeout=60)
         if self.credentials:
-            self.save_credentials()
             return True
         else:
             return False

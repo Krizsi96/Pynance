@@ -71,16 +71,41 @@ def auth_fixture():
         return test_auth, credentials_folder
 
 
-def test_check_with_valid_token(auth_fixture):
+@pytest.mark.parametrize(
+    "expired, refresh_token, valid, expected_message, expected_return_value",
+    [
+        # expired token without refresh token
+        (
+            True,
+            False,
+            False,
+            "expired token",
+            False,
+        ),
+        # expired token with refresh token
+        (
+            True,
+            True,
+            False,
+            "refreshed token",
+            True,
+        ),
+        # valid token
+        (False, False, True, "valid token", True),
+    ],
+)
+def test_check_with_different_tokens(
+    auth_fixture, expired, refresh_token, valid, expected_message, expected_return_value
+):
     # Given
     test_auth = auth_fixture[0]
     token_path = auth_fixture[1].joinpath("token.json")
 
     with patch("authentication.authentication.Credentials") as MockCredentials:
         mock_credentials = MagicMock()
-        mock_credentials.expired = False
-        mock_credentials.refresh_token = False
-        mock_credentials.valid = True
+        mock_credentials.expired = expired
+        mock_credentials.refresh_token = refresh_token
+        mock_credentials.valid = valid
 
         MockCredentials.from_authorized_user_file.return_value = mock_credentials
 
@@ -94,59 +119,9 @@ def test_check_with_valid_token(auth_fixture):
                 return_value = test_auth.check()
 
     # Then
-    mocked_print.assert_called_once_with("Authentication OK")
+    mocked_print.assert_called_once_with(expected_message)
     mocked_folder_contains_token_file.assert_called_once_with(token_path)
-    assert return_value is True
-
-
-def test_check_with_invalid_token(auth_fixture):
-    # Given
-    test_auth = auth_fixture[0]
-
-    with patch("authentication.authentication.Credentials") as MockCredentials:
-        mock_credentials = MagicMock()
-        mock_credentials.expired = True
-        mock_credentials.refresh_token = False
-        mock_credentials.valid = False
-
-        MockCredentials.from_authorized_user_file.return_value = mock_credentials
-
-        with patch(
-            "authentication.authentication.folder_contains_token_file"
-        ) as mocked_folder_contains_token_file:
-            mocked_folder_contains_token_file.return_value = True
-
-            # When
-            return_value = test_auth.check()
-
-    # Then
-    assert return_value is False
-
-
-def test_check_with_refreshable_token(auth_fixture):
-    # Given
-    test_auth = auth_fixture[0]
-
-    with patch("authentication.authentication.Credentials") as MockCredentials:
-        mock_credentials = MagicMock()
-        mock_credentials.expired = True
-        mock_credentials.refresh_token = True
-        mock_credentials.valid = False
-        mock_credentials.refresh = MagicMock()
-
-        MockCredentials.from_authorized_user_file.return_value = mock_credentials
-
-        with patch(
-            "authentication.authentication.folder_contains_token_file"
-        ) as mocked_folder_contains_token_file:
-            mocked_folder_contains_token_file.return_value = True
-
-            # When
-            return_value = test_auth.check()
-
-    # Then
-    mock_credentials.refresh.assert_called_once()
-    assert return_value is True
+    assert return_value is expected_return_value
 
 
 def test_check_with_not_existing_token(auth_fixture):

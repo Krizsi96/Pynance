@@ -5,6 +5,7 @@ from authentication.authentication import (
     Authentication,
     folder_contains_credentials_file,
     folder_contains_token_file,
+    run_with_timeout,
 )
 
 
@@ -153,21 +154,18 @@ def test_successful_login(auth_fixture):
         mocked_flow.run_local_server.return_value = MagicMock()
         MockedInstalledAppFlow.from_client_secrets_file.return_value = mocked_flow
 
-        mock_file = mock_open()
-        with patch("builtins.open", mock_file):
-            # When
-            return_value = test_auth.login()
+        # When
+        return_value = test_auth.login()
 
     # Then
     assert return_value is True
-    mock_file.assert_called_once_with(test_auth.path_to_token, "w")
     mocked_flow.run_local_server.assert_called_once()
     MockedInstalledAppFlow.from_client_secrets_file.assert_called_once_with(
         test_auth.path_to_credentials, test_auth.SCOPES
     )
 
 
-def test_unsuccesful_login(auth_fixture):
+def test_login_timeout(auth_fixture):
     # Given
     test_auth = auth_fixture[0]
 

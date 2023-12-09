@@ -23,10 +23,11 @@ class Authentication:
 
     def check(self):
         is_check_ok = False
+        message = "no token found"
         if folder_contains_token_file(self.path_to_token):
             self.credentials = load_from_token(self.path_to_token)
             if self.credentials and self.credentials.valid:
-                print("Authentication OK")
+                message = "valid token"
                 is_check_ok = True
             elif (
                 self.credentials
@@ -34,9 +35,11 @@ class Authentication:
                 and self.credentials.refresh_token
             ):
                 self.credentials.refresh(Request())
-                print("Authentication Refreshed")
+                message = "refreshed token"
                 is_check_ok = True
-
+            else:
+                message = "expired token"
+        print(message)
         return is_check_ok
 
 

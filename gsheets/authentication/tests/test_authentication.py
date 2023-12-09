@@ -139,4 +139,4 @@ def test_check_with_not_existing_token(auth_fixture):
 
     # Then
     mocked_folder_contains_token_file.assert_called_once_with(token_path)
-    return_value is False
+    assert return_value is False

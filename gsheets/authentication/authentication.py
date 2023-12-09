@@ -18,7 +18,12 @@ class Authentication:
         self.path_to_token = Path(credentials_folder).joinpath(TOKEN_FILE_NAME)
 
     def check(self):
-        print("Authentication OK")
+        is_check_ok = False
+        if folder_contains_token_file(self.path_to_token):
+            print("Authentication OK")
+            is_check_ok = True
+
+        return is_check_ok
 
 
 def folder_contains_credentials_file(credentials_folder):

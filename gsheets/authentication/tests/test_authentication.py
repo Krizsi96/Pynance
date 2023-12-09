@@ -187,7 +187,7 @@ def test_login_timeout(auth_fixture):
     # Then
     assert return_value is False
     mocked_run_with_timeout.assert_called_once_with(
-        mocked_flow.run_local_server, timeout=60
+        mocked_flow.run_local_server, timeout=60, port=0
     )
     MockedInstalledAppFlow.from_client_secrets_file.assert_called_once_with(
         test_auth.path_to_credentials, test_auth.SCOPES

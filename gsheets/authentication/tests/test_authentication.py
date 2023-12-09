@@ -116,7 +116,7 @@ def test_check_with_different_tokens(
 
             with patch("builtins.print") as mocked_print:
                 # when
-                return_value = test_auth.check()
+                return_value = test_auth.check_credentials()
 
     # Then
     mocked_print.assert_called_once_with(expected_message)
@@ -135,7 +135,7 @@ def test_check_with_not_existing_token(auth_fixture):
         mocked_folder_contains_token_file.return_value = False
 
         # When
-        return_value = test_auth.check()
+        return_value = test_auth.load_credentials()
 
     # Then
     mocked_folder_contains_token_file.assert_called_once_with(token_path)

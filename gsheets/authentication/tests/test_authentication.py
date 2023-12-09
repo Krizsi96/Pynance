@@ -5,7 +5,6 @@ from authentication.authentication import (
     Authentication,
     folder_contains_credentials_file,
     folder_contains_token_file,
-    run_with_timeout,
 )
 
 
@@ -197,13 +196,13 @@ def test_login_timeout(auth_fixture):
 def test_saving_of_credentials(auth_fixture):
     # Given
     test_auth = auth_fixture[0]
-    with patch("authentication.authentication.Credentials") as MockCredentials:
-        mock_credentials = MagicMock()
-        mock_credentials.expired = False
-        mock_credentials.refresh_token = False
-        mock_credentials.valid = True
 
-        test_auth.credentials = mock_credentials
+    mock_credentials = MagicMock()
+    mock_credentials.expired = False
+    mock_credentials.refresh_token = False
+    mock_credentials.valid = True
+
+    test_auth.credentials = mock_credentials
 
     with patch("authentication.authentication.open", mock_open()) as mocked_open:
         # When

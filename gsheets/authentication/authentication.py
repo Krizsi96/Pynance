@@ -5,7 +5,6 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 
 CREDENTIALS_FILE_NAME = "credentials.json"
 TOKEN_FILE_NAME = "token.json"
-SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
 
 
 class Authentication:
@@ -21,6 +20,7 @@ class Authentication:
         )
         self.path_to_token = Path(credentials_folder).joinpath(TOKEN_FILE_NAME)
         self.credentials = None
+        self.SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
 
     def check_credentials(self):
         """Checks the credentials and refreshes them if needed
@@ -52,7 +52,7 @@ class Authentication:
         False - can't load credentials
         """
         if folder_contains_token_file(self.path_to_token):
-            self.credentials = load_from_token(self.path_to_token)
+            self.credentials = load_from_token(self.path_to_token, self.SCOPES)
             return True
         else:
             return False
@@ -65,7 +65,7 @@ class Authentication:
         False - login failed
         """
         flow = InstalledAppFlow.from_client_secrets_file(
-            self.path_to_credentials, SCOPES
+            self.path_to_credentials, self.SCOPES
         )
         self.credentials = flow.run_local_server(port=0)
         if self.credentials:
@@ -94,5 +94,5 @@ def folder_contains_token_file(path_to_token):
     return Path(path_to_token).is_file()
 
 
-def load_from_token(path_to_token):
-    return Credentials.from_authorized_user_file(path_to_token, SCOPES)
+def load_from_token(path_to_token, scopes):
+    return Credentials.from_authorized_user_file(path_to_token, scopes)

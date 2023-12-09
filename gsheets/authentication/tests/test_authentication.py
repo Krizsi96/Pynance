@@ -1,5 +1,5 @@
 import pytest
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch, MagicMock, mock_open
 from pathlib import Path
 from authentication.authentication import (
     Authentication,
@@ -140,3 +140,53 @@ def test_check_with_not_existing_token(auth_fixture):
     # Then
     mocked_folder_contains_token_file.assert_called_once_with(token_path)
     assert return_value is False
+
+
+def test_successful_login(auth_fixture):
+    # Given
+    test_auth = auth_fixture[0]
+
+    with patch(
+        "authentication.authentication.InstalledAppFlow"
+    ) as MockedInstalledAppFlow:
+        mocked_flow = MagicMock()
+        mocked_flow.run_local_server.return_value = MagicMock()
+        MockedInstalledAppFlow.from_client_secrets_file.return_value = mocked_flow
+
+        mock_file = mock_open()
+        with patch("builtins.open", mock_file):
+            # When
+            return_value = test_auth.login()
+
+    # Then
+    assert return_value is True
+    mock_file.assert_called_once_with(test_auth.path_to_token, "w")
+    mocked_flow.run_local_server.assert_called_once_with(port=0)
+    MockedInstalledAppFlow.from_client_secrets_file.assert_called_once_with(
+        test_auth.path_to_credentials, test_auth.SCOPES
+    )
+
+
+def test_unsuccesful_login(auth_fixture):
+    # Given
+    test_auth = auth_fixture[0]
+
+    with patch(
+        "authentication.authentication.InstalledAppFlow"
+    ) as MockedInstalledAppFlow:
+        mocked_flow = MagicMock()
+        mocked_flow.run_local_server.return_value = None
+        MockedInstalledAppFlow.from_client_secrets_file.return_value = mocked_flow
+
+        mock_file = mock_open()
+        with patch("builtins.open", mock_file):
+            # When
+            return_value = test_auth.login()
+
+    # Then
+    assert return_value is False
+    mock_file.assert_not_called()
+    mocked_flow.run_local_server.assert_called_once_with(port=0)
+    MockedInstalledAppFlow.from_client_secrets_file.assert_called_once_with(
+        test_auth.path_to_credentials, test_auth.SCOPES
+    )

@@ -1,9 +1,7 @@
 import pytest
 from unittest.mock import patch, Mock
-from authentication.authentication import (
-    Authentication,
-    folder_contains_credentials_file,
-)
+from pathlib import Path
+from authentication.authentication import Authentication
 
 
 @patch("authentication.authentication.folder_contains_credentials_file")
@@ -48,29 +46,41 @@ def test_check_with_valid_token():
         mocked_folder_contains_credentials_file.return_value = True
         test_auth = Authentication(credentials_folder="/path/to/existing/credentials")
 
-    with patch("builtins.print") as mocked_print:
-        # when
-        test_auth.check()
+    with patch(
+        "authentication.authentication.folder_contains_token_file"
+    ) as mocked_folder_contains_token_file:
+        mocked_folder_contains_token_file.return_value = True
+
+        with patch("builtins.print") as mocked_print:
+            # when
+            return_value = test_auth.check()
 
     # Then
     mocked_print.assert_called_once_with("Authentication OK")
+    mocked_folder_contains_token_file.assert_called_once_with(
+        Path("/path/to/existing/credentials/token.json")
+    )
+    assert return_value is True
 
 
-@patch("authentication.authentication.folder_contains_token_file")
-def test_check_with_not_existing_token(mocked_folder_contains_token_file):
+def test_check_with_not_existing_token():
     # Given
     with patch(
         "authentication.authentication.folder_contains_credentials_file"
     ) as mocked_folder_contains_credentials_file:
         mocked_folder_contains_credentials_file.return_value = True
         test_auth = Authentication(credentials_folder="/path/to/existing/credentials")
-        test_auth.path_to_token = Mock(is_file=Mock(return_value=False))
 
-    mocked_folder_contains_token_file.return_value = False
+    with patch(
+        "authentication.authentication.folder_contains_token_file"
+    ) as mocked_folder_contains_token_file:
+        mocked_folder_contains_token_file.return_value = False
 
-    # When
-    test_auth.check()
+        # When
+        return_value = test_auth.check()
 
+    # Then
     mocked_folder_contains_token_file.assert_called_once_with(
-        "/path/to/existing/credentials/token.json"
+        Path("/path/to/existing/credentials/token.json")
     )
+    return_value is False

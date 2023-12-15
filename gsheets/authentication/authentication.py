@@ -20,7 +20,7 @@ class Authentication:
         self.credentials = None
         self.SCOPES = SCOPES
         if not folder_contains_credentials_file(self.path_to_credentials):
-            raise FileNotFoundError
+            raise FileNotFoundError("Credentials file not found in the specified folder")
 
     def check_credentials(self):
         """Checks the credentials and refreshes them if needed

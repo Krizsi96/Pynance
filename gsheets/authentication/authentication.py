@@ -6,6 +6,7 @@ from concurrent.futures import ThreadPoolExecutor, TimeoutError as FutureTimeout
 
 CREDENTIALS_FILE_NAME = "credentials.json"
 TOKEN_FILE_NAME = "token.json"
+SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
 
 
 class Authentication:
@@ -17,7 +18,7 @@ class Authentication:
         )
         self.path_to_token = Path(credentials_folder).joinpath(TOKEN_FILE_NAME)
         self.credentials = None
-        self.SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
+        self.SCOPES = SCOPES
         if not folder_contains_credentials_file(self.path_to_credentials):
             raise FileNotFoundError
 

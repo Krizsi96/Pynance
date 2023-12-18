@@ -2,7 +2,7 @@ from pathlib import Path
 from google.oauth2.credentials import Credentials
 from google.auth.transport.requests import Request
 from google_auth_oauthlib.flow import InstalledAppFlow
-from concurrent.futures import ThreadPoolExecutor, TimeoutError as FutureTimeoutError
+from authentication.utils import run_with_timeout
 
 CREDENTIALS_FILE_NAME = "credentials.json"
 TOKEN_FILE_NAME = "token.json"
@@ -20,7 +20,9 @@ class Authentication:
         self.credentials = None
         self.SCOPES = SCOPES
         if not folder_contains_credentials_file(self.path_to_credentials):
-            raise FileNotFoundError("Credentials file not found in the specified folder")
+            raise FileNotFoundError(
+                "Credentials file not found in the specified folder"
+            )
 
     def check_credentials(self):
         """Checks the credentials and refreshes them if needed
@@ -108,15 +110,3 @@ def folder_contains_token_file(path_to_token):
 
 def load_from_token(path_to_token, scopes):
     return Credentials.from_authorized_user_file(path_to_token, scopes)
-
-
-def run_with_timeout(func, timeout, *args, **kwargs):
-    executor = ThreadPoolExecutor(max_workers=1)
-    future = executor.submit(func, *args, **kwargs)
-    try:
-        return future.result(timeout=timeout)
-    except FutureTimeoutError:
-        print(f"TimeoutError for func: {func.__name__}, timeout: {timeout}")
-        return None
-    finally:
-        executor.shutdown(wait=False)

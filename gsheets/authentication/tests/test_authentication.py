@@ -114,12 +114,12 @@ def test_check_with_different_tokens(
         ) as mocked_folder_contains_token_file:
             mocked_folder_contains_token_file.return_value = True
 
-            with patch("builtins.print") as mocked_print:
+            with patch("authentication.authentication.logging") as mocked_logging:
                 # when
                 return_value = test_auth.check_credentials()
 
     # Then
-    mocked_print.assert_called_once_with(expected_message)
+    mocked_logging.info.assert_called_once_with(expected_message)
     mocked_folder_contains_token_file.assert_called_once_with(token_path)
     assert return_value is expected_return_value
 

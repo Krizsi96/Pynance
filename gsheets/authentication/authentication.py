@@ -3,6 +3,7 @@ from google.oauth2.credentials import Credentials
 from google.auth.transport.requests import Request
 from google_auth_oauthlib.flow import InstalledAppFlow
 from authentication.utils import run_with_timeout
+import logging
 
 CREDENTIALS_FILE_NAME = "credentials.json"
 TOKEN_FILE_NAME = "token.json"
@@ -43,7 +44,7 @@ class Authentication:
                 is_credentials_ok = True
             else:
                 message = "expired token"
-        print(message)
+        logging.info(message)
         return is_credentials_ok
 
     def load_credentials(self):

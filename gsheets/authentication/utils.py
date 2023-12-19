@@ -1,4 +1,5 @@
 from concurrent.futures import ThreadPoolExecutor, TimeoutError as FutureTimeoutError
+import logging
 
 
 def run_with_timeout(func, timeout, *args, **kwargs):
@@ -7,7 +8,7 @@ def run_with_timeout(func, timeout, *args, **kwargs):
     try:
         return future.result(timeout=timeout)
     except FutureTimeoutError:
-        print(f"TimeoutError for func: {func.__name__}, timeout: {timeout}")
+        logging.error(f"TimeoutError for func: {func.__name__}, timeout: {timeout}")
         return None
     finally:
         executor.shutdown(wait=False)

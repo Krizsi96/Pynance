@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-from authentication.authentication import Authentication
+from src.authentication import Authentication
 import click
 import logging
 

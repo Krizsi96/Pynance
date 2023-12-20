@@ -56,3 +56,18 @@ def test_spreadsheet_update(spreadsheet_test):
             valueInputOption="USER_ENTERED",
             body={"values": [["Test Value"]]},
         )
+
+
+@patch("src.spreadsheet.logging")
+def test_log_successfull_update(mocked_logging, spreadsheet_test):
+    # Given
+    spreadsheet = spreadsheet_test
+
+    with patch.object(spreadsheet.service.spreadsheets().values(), "update"):
+        # When
+        spreadsheet.update(range="A1", value="Test Value")
+
+        # Then
+        mocked_logging.info.assert_called_once_with(
+            "spreadsheet id#your_spreadsheet_id updated 'A1' with 'Test Value'"
+        )

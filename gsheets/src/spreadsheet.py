@@ -10,5 +10,10 @@ class Spreadsheet:
     def get(self):
         pass
 
-    def update(self):
-        pass
+    def update(self, range: str, value):
+        self.service.spreadsheets().values().update(
+            spreadsheetId=self.spreadsheet_id,
+            range=range,
+            valueInputOption="USER_ENTERED",
+            body={"values": [[value]]},
+        ).execute()

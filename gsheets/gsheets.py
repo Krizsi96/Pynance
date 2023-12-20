@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-from src.authentication import Authentication
-import click
+import gspread
 import logging
+import click
 
 
 @click.group()
@@ -10,37 +10,23 @@ def cli():
 
 
 @click.command()
-def run():
-    logging.basicConfig(
-        level=logging.DEBUG, format="%(asctime)s - %(levelname)s - %(message)s"
+@click.argument("range_of_cells", type=str, required=True)
+@click.argument("value", type=str, required=True)
+def update(range_of_cells, value):
+    client = gspread.service_account(
+        filename="/home/kristof/Pynance/gsheets/service_account.json"
     )
+    spreadsheet = client.open("PynanceTest")
+    worksheet = spreadsheet.sheet1
 
-    logging.info("Starting gsheets")
+    cell_list = worksheet.range(range_of_cells)
+    for cell in cell_list:
+        cell.value = value
 
-    try:
-        user = Authentication("/home/kristof/Pynance/gsheets")
-    except FileNotFoundError as error:
-        logging.error(error)
-        exit(1)
-
-    user = authentication(user)
+    worksheet.update_cells(cell_list)
 
 
-def authentication(user):
-    if not user.check_credentials():
-        try:
-            user.login()
-            user.save_credentials()
-        except ValueError as error:
-            logging.error(error)
-            exit(1)
-
-    user.load_credentials()
-
-    return user
-
-
-cli.add_command(run)
+cli.add_command(update)
 
 if __name__ == "__main__":
     cli()

@@ -27,3 +27,12 @@ def test_client_creation(mocked_service_account):
     # Then
     assert mocked_service_account.called_once_with(filename)
     assert return_value == "new_client"
+
+
+def test_exception_handling():
+    # Given
+    filename = "not_existing_file"
+
+    # When
+    with pytest.raises(FileNotFoundError, match=f"{filename} not found"):
+        create_client(filename)

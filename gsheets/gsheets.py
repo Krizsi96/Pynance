@@ -16,7 +16,11 @@ def cli():
 def update(spreadsheet_name, range_of_cells, value):
     configure_logging()
     logging.info(f"Updating spreadsheet {spreadsheet_name}")
-    client = create_client("/home/kristof/Pynance/gsheets/service_account.json")
+    try:
+        client = create_client("/home/kristof/Pynance/gsheets/service_account.json")
+    except FileNotFoundError:
+        return
+
     try:
         spreadsheet = client.open(spreadsheet_name)
         logging.debug(f"Spreadsheet {spreadsheet_name} opened")
@@ -41,7 +45,13 @@ def configure_logging():
 
 
 def create_client(filename):
-    return gspread.service_account(filename)
+    try:
+        new_client = gspread.service_account(filename)
+        logging.debug(f"new client created from {filename}")
+        return new_client
+    except FileNotFoundError:
+        logging.error(f"{filename} not found")
+        raise FileNotFoundError(f"{filename} not found")
 
 
 cli.add_command(update)

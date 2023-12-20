@@ -1,5 +1,6 @@
 from googleapiclient.discovery import build
 from google.oauth2.credentials import Credentials
+import logging
 
 
 class Spreadsheet:
@@ -17,3 +18,6 @@ class Spreadsheet:
             valueInputOption="USER_ENTERED",
             body={"values": [[value]]},
         ).execute()
+        logging.info(
+            f"spreadsheet id#{self.spreadsheet_id} updated '{range}' with '{value}'"
+        )

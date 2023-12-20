@@ -16,9 +16,7 @@ def cli():
 def update(spreadsheet_name, range_of_cells, value):
     configure_logging()
     logging.info(f"Updating spreadsheet {spreadsheet_name}")
-    client = gspread.service_account(
-        filename="/home/kristof/Pynance/gsheets/service_account.json"
-    )
+    client = create_client("/home/kristof/Pynance/gsheets/service_account.json")
     try:
         spreadsheet = client.open(spreadsheet_name)
         logging.debug(f"Spreadsheet {spreadsheet_name} opened")
@@ -40,6 +38,10 @@ def configure_logging():
     logging.basicConfig(
         format="%(asctime)s - %(levelname)s - %(message)s", level=logging.DEBUG
     )
+
+
+def create_client(filename):
+    return gspread.service_account(filename)
 
 
 cli.add_command(update)

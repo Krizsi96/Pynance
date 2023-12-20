@@ -30,24 +30,26 @@ def test_spreadsheet_service_is_created_during_initialization(mocked_build):
     assert spreadsheet.service == mocked_service
 
 
+@pytest.fixture
 @patch("src.spreadsheet.build")
-def test_spreadsheet_update(mocked_build):
+def spreadsheet_test(mocked_build):
     mocked_service = MagicMock()
     mocked_build.return_value = mocked_service
     credentials = "credentials"
-    # Create an instance of the Spreadsheet class with mock credentials
-    spreadsheet = Spreadsheet(
-        spreadsheet_id="your_spreadsheet_id", credentials=credentials
-    )
+    return Spreadsheet(spreadsheet_id="your_spreadsheet_id", credentials=credentials)
 
-    # Mock the sheets API update method
+
+def test_spreadsheet_update(spreadsheet_test):
+    # Given
+    spreadsheet = spreadsheet_test
+
     with patch.object(
         spreadsheet.service.spreadsheets().values(), "update"
     ) as mock_update:
-        # Call the update method of the Spreadsheet class
+        # When
         spreadsheet.update(range="A1", value="Test Value")
 
-        # Assert that the update method was called with the correct arguments
+        # Then
         mock_update.assert_called_once_with(
             spreadsheetId="your_spreadsheet_id",
             range="A1",

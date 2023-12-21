@@ -18,14 +18,8 @@ def update(spreadsheet_name, range_of_cells, value):
     logging.info(f"Updating spreadsheet {spreadsheet_name}")
     try:
         client = create_client("/home/kristof/Pynance/gsheets/service_account.json")
-    except FileNotFoundError:
-        return
-
-    try:
-        spreadsheet = client.open(spreadsheet_name)
-        logging.debug(f"Spreadsheet {spreadsheet_name} opened")
-    except gspread.SpreadsheetNotFound:
-        logging.error(f"Spreadsheet {spreadsheet_name} not found")
+        spreadsheet = open_spreadsheet(client, spreadsheet_name)
+    except [gspread.SpreadsheetNotFound, FileNotFoundError]:
         return
     worksheet = spreadsheet.sheet1
     logging.debug(f"Worksheet {worksheet.title} opened")
@@ -52,6 +46,16 @@ def create_client(filename):
     except FileNotFoundError:
         logging.error(f"{filename} not found")
         raise FileNotFoundError(f"{filename} not found")
+
+
+def open_spreadsheet(client, spreadsheet_name):
+    try:
+        spreadsheet = client.open(spreadsheet_name)
+        logging.debug(f"Spreadsheet {spreadsheet_name} opened")
+        return spreadsheet
+    except gspread.SpreadsheetNotFound:
+        logging.error(f"Spreadsheet {spreadsheet_name} not found")
+        raise gspread.SpreadsheetNotFound(f"Spreadsheet {spreadsheet_name} not found")
 
 
 cli.add_command(update)

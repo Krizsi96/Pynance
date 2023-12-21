@@ -15,14 +15,29 @@ def cli():
 @click.argument("value", type=str, required=True)
 def update(spreadsheet_name, range_of_cells, value):
     configure_logging()
+    update_values_of(spreadsheet_name, "Sheet1", range_of_cells, value)
+
+
+@click.command()
+@click.argument("spreadsheet_name", type=str, required=True)
+@click.argument("range_of_cells", type=str, required=True)
+def read(spreadsheet_name, range_of_cells):
+    configure_logging()
+    logging.info(f"Reading spreadsheet {spreadsheet_name}")
+    cells = read_values_of(spreadsheet_name, "Sheet1", range_of_cells)
+    for cell in cells:
+        print(f"{cell.row}, {cell.col}: {cell.value}")
+
+
+def update_values_of(spreadsheet_name, worksheet_name, range_of_cells, value):
     logging.info(f"Updating spreadsheet {spreadsheet_name}")
+
     try:
-        client = create_client("/home/kristof/Pynance/gsheets/service_account.json")
-        spreadsheet = open_spreadsheet(client, spreadsheet_name)
+        worksheet = open_worksheet(spreadsheet_name, worksheet_name)
+        logging.debug(f"Worksheet {worksheet.title} opened")
     except [gspread.SpreadsheetNotFound, FileNotFoundError]:
         return
-    worksheet = spreadsheet.sheet1
-    logging.debug(f"Worksheet {worksheet.title} opened")
+
     cell_list = worksheet.range(range_of_cells)
     for cell in cell_list:
         cell.value = value
@@ -30,6 +45,27 @@ def update(spreadsheet_name, range_of_cells, value):
     logging.info(
         f"Cell(s) '{worksheet.title}!{range_of_cells}' updated with value '{value}'"
     )
+
+
+def read_values_of(spreadsheet_name, worksheet_name, range_of_cells):
+    logging.info(f"Reading spreadsheet {spreadsheet_name}")
+
+    try:
+        worksheet = open_worksheet(spreadsheet_name, worksheet_name)
+        logging.debug(f"Worksheet {worksheet.title} opened")
+    except [gspread.SpreadsheetNotFound, FileNotFoundError]:
+        return
+
+    cell_list = worksheet.range(range_of_cells)
+    logging.info(f"Cell(s) '{worksheet.title}!{range_of_cells}' read")
+
+    return cell_list
+
+
+def open_worksheet(spreadsheet_name, worksheet_name):
+    client = create_client("/home/kristof/Pynance/gsheets/service_account.json")
+    spreadsheet = open_spreadsheet(client, spreadsheet_name)
+    return spreadsheet.worksheet(worksheet_name)
 
 
 def configure_logging():
@@ -59,6 +95,7 @@ def open_spreadsheet(client, spreadsheet_name):
 
 
 cli.add_command(update)
+cli.add_command(read)
 
 if __name__ == "__main__":
     cli()
